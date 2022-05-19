@@ -1,0 +1,83 @@
+#!/bin/sh
+
+
+echo Welcome to underGrader. You must copy all testcases input files in folder input and output files in foler output and executable file in folder exc\\n\\n\\n
+
+echo Enter problem name
+read prName
+echo Enter time
+read prTime
+
+# input-output file type
+
+echo Enter input file type:\\n\(1\) input.[num].in\\n\(2\) [num].in
+
+file_type=0
+
+until [ "$file_type" -le 2 ] && [ "$file_type" -ge 1 ] ; do
+	read file_type
+	if [ "$file_type" -lt 1 ] || [ "$file_type" -gt 2 ]; then
+		echo Please enter a value between 1 and 2
+	fi
+done 
+
+
+echo Enter first testcase number
+read testcase_num
+#testcase_num=1
+result=0
+
+echo run all case in one? [1]
+read RunCases
+
+AC=0
+QNT=0
+clear
+until [ $result -eq 1 ]; do
+	#copy testcase files
+	if [ $file_type -eq 1 ] ; then 
+		if [ -f ./data/$prName.$testcase_num.in ] && [ -f ./data/$prName.$testcase_num.out ]; then
+			cp ./data/$prName.$testcase_num.in ./input.in
+			output="./data/$prName.$testcase_num.out"
+		else
+			result=1
+		fi  
+	else
+		python3 parse.py
+		if [ -f ./data/$testcase_num.in ] && [ -f ./data/$testcase_num.out ] ; then
+			cp ./data/$testcase_num.in ./input.in
+			output="./data/$testcase_num.out"
+		else
+			result=1
+		fi
+	fi
+	
+	
+	if [ $result -eq 0 ]; then
+		QNT=$(($QNT+1))
+		echo File "$testcase_num" copied
+		echo running testcase "$testcase_num"....
+		time timeout $prTime ./exc/$prName		
+		ans=$(python3 ./evaluate.py $output)
+		if [ $ans -eq 1 ]; then
+			AC=$(($AC+1))
+			echo ACCEPTED
+		elif [ $ans -eq 2 ]; then
+			echo Be sure that file "$output" exists
+		else
+			echo WRONG ANSWER
+		fi
+		testcase_num=$(($testcase_num+1))
+	fi
+	
+	if [ $RunCases -eq 1 ]; then
+		read _dumb
+	fi
+	
+
+done
+
+
+echo Accepted "$AC" of "$QNT"
+
+
